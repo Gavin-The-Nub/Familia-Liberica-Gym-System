@@ -79,7 +79,7 @@ export default async function Dashboard() {
   
   // Period Revenue (1-15 or 16-end)
   const monthlyMemberSales = members
-    .filter(m => m.created_at && m.created_at >= startDate + "T00:00:00" && m.created_at <= endDate + "T23:59:59")
+    .filter(m => m.created_at && m.created_at >= startDate + "T00:00:00+08:00" && m.created_at <= endDate + "T23:59:59+08:00")
     .reduce((sum, m) => sum + (m.payment_amount || 0), 0)
   
   const monthlyRenewalSales = renewals
@@ -98,7 +98,7 @@ export default async function Dashboard() {
 
   // Previous Period Revenue (for Delta)
   const prevMemberSales = members
-    .filter(m => m.created_at && m.created_at >= prevStart + "T00:00:00" && m.created_at <= prevEnd + "T23:59:59")
+    .filter(m => m.created_at && m.created_at >= prevStart + "T00:00:00+08:00" && m.created_at <= prevEnd + "T23:59:59+08:00")
     .reduce((sum, m) => sum + (m.payment_amount || 0), 0)
   
   const prevRenewalSales = renewals

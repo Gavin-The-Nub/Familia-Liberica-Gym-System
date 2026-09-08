@@ -30,47 +30,42 @@ async function getRevenueData(period: ChartPeriodBounds) {
   const { data: newMembersThis } = await supabase
     .from("members")
     .select("payment_amount, membership_type, created_at")
-    .gte("created_at", startDate + "T00:00:00")
-    .lte("created_at", endDate + "T23:59:59")
+    .gte("created_at", startDate + "T00:00:00+08:00")
+    .lte("created_at", endDate + "T23:59:59+08:00")
 
-  // Fetch renewals (current period) — use amount field
-  const { data: renewalsThisRaw } = await supabase
+  // Fetch renewals (current period) — server-side filtered, not all rows
+  const { data: renewalsThis } = await supabase
     .from("renewals")
-    .select("*")
+    .select("payment_amount, membership_type, created_at")
+    .gte("created_at", startDate + "T00:00:00+08:00")
+    .lte("created_at", endDate + "T23:59:59+08:00")
 
   // Fetch prev period
   const { data: newMembersPrev } = await supabase
     .from("members")
     .select("payment_amount, created_at")
-    .gte("created_at", prevStart + "T00:00:00")
-    .lte("created_at", prevEnd + "T23:59:59")
+    .gte("created_at", prevStart + "T00:00:00+08:00")
+    .lte("created_at", prevEnd + "T23:59:59+08:00")
 
-  const { data: renewalsPrevRaw } = await supabase
+  const { data: renewalsPrev } = await supabase
     .from("renewals")
-    .select("*")
+    .select("payment_amount, membership_type, created_at")
+    .gte("created_at", prevStart + "T00:00:00+08:00")
+    .lte("created_at", prevEnd + "T23:59:59+08:00")
 
   // Fetch store sales (current period)
   const { data: salesThis } = await supabase
     .from("sales")
     .select("total_price, created_at")
-    .gte("created_at", startDate + "T00:00:00")
-    .lte("created_at", endDate + "T23:59:59")
+    .gte("created_at", startDate + "T00:00:00+08:00")
+    .lte("created_at", endDate + "T23:59:59+08:00")
 
   // Fetch store sales (prev period)
   const { data: salesPrev } = await supabase
     .from("sales")
     .select("total_price, created_at")
-    .gte("created_at", prevStart + "T00:00:00")
-    .lte("created_at", prevEnd + "T23:59:59")
-
-  const renewalsThis = (renewalsThisRaw || []).filter((r: any) => {
-    const d = renewalDate(r)
-    return d && d >= startDate + "T00:00:00" && d <= endDate + "T23:59:59"
-  })
-  const renewalsPrev = (renewalsPrevRaw || []).filter((r: any) => {
-    const d = renewalDate(r)
-    return d && d >= prevStart + "T00:00:00" && d <= prevEnd + "T23:59:59"
-  })
+    .gte("created_at", prevStart + "T00:00:00+08:00")
+    .lte("created_at", prevEnd + "T23:59:59+08:00")
 
   // --- Compute summary stats ---
   const newMemberRevenue = (newMembersThis || []).reduce((s, m) => s + Number(m.payment_amount || 0), 0)
