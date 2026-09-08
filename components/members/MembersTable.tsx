@@ -25,7 +25,8 @@ type MemberRow = {
   email: string | null
   phone: string | null
   membership_category: "gym" | "boxing_muaythai"
-  photo_url: string | null
+  // photo_url is NOT fetched in the list view (would bloat egress with base64 data)
+  // It is only fetched on the individual member profile page
   membership_type: "1_day" | "weekly" | "monthly"
   status: "active" | "suspended" | "cancelled"
   start_date: string
@@ -60,10 +61,10 @@ export function MembersTable() {
     const { data, error } = await supabase
       .from("members")
       .select(
-        `
-          id, name, email, phone, membership_category, photo_url, membership_type, status, start_date, end_date, created_at, payment_amount, pending_deletion,
-          renewals ( payment_amount, created_at )
-        `
+        // photo_url intentionally excluded — base64 photos bloat every fetch by MBs.
+        // Photos are only loaded on the individual member profile page.
+        `id, name, email, phone, membership_category, membership_type, status, start_date, end_date, created_at, payment_amount, pending_deletion,
+          renewals ( payment_amount, created_at )`
       )
       .order("created_at", { ascending: false })
 
@@ -339,13 +340,10 @@ export function MembersTable() {
                   <td className="px-6 py-4">
                     <Link href={`/members/${member.id}`} className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-input flex items-center justify-center overflow-hidden shrink-0">
-                        {member.photo_url ? (
-                          <img src={member.photo_url} alt={member.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xs font-bold text-zinc-300">
-                            {member.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
-                          </span>
-                        )}
+                        {/* photo_url not fetched in list — shows initials only. Full photo on profile page. */}
+                        <span className="text-xs font-bold text-zinc-300">
+                          {member.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </span>
                       </div>
                       <div>
                         <div className="font-medium text-primary group-hover:text-accent-primary transition-colors flex items-center gap-2">

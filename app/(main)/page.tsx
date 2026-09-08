@@ -8,8 +8,9 @@ import { isSubscriptionCountedActive, memberSubscriptionCategory } from "@/lib/m
 import { PH_TIME_ZONE, phTodayISO, phDateISOFromDate, parseISODateAtPHMidnight } from "@/lib/phTime"
 import { resolveAnalyticsPeriod } from "@/utils/date-filters"
 
-// Ensure dynamic rendering because we fetch live database
-export const dynamic = 'force-dynamic'
+// Revalidate every 60 seconds — avoids hitting Supabase on every single request
+// while keeping dashboard data reasonably fresh.
+export const revalidate = 60
 
 export default async function Dashboard() {
   const supabase = await createClient()
@@ -18,13 +19,20 @@ export default async function Dashboard() {
   // This avoids Supabase's 1000-row default cap cutting off recent records.
   const windowStart = phDateISOFromDate(new Date(parseISODateAtPHMidnight(todayInPH).getTime() - 35 * 24 * 60 * 60 * 1000))
 
-  const { data: membersResponse } = await supabase.from('members').select('*')
+  // Only select the columns the dashboard actually needs — never fetch photo_url
+  const { data: membersResponse } = await supabase
+    .from('members')
+    .select('id, name, membership_type, status, end_date, created_at, payment_amount, member_id:id')
   const { data: renewalsResponse } = await supabase
     .from('renewals')
-    .select('*')
+    .select('member_id, membership_type, payment_amount, created_at')
     .gte('created_at', windowStart + 'T00:00:00+08:00')
     .order('created_at', { ascending: false })
-  const { data: salesResponse } = await supabase.from('sales').select('*')
+  // Only fetch sales within the relevant window (not all 858+ rows)
+  const { data: salesResponse } = await supabase
+    .from('sales')
+    .select('total_price, created_at')
+    .gte('created_at', windowStart + 'T00:00:00+08:00')
   const { data: attendanceResponse } = await supabase
     .from("attendance")
     .select("check_in_date, created_at")

@@ -15,7 +15,10 @@ CREATE TABLE public.members (
     qr_code VARCHAR UNIQUE NOT NULL,
     payment_amount DECIMAL(10, 2),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    pending_deletion BOOLEAN DEFAULT false
+    pending_deletion BOOLEAN DEFAULT false,
+    phone TEXT,
+    category TEXT,
+    membership_category TEXT
 );
 
 -- Attendance Table
