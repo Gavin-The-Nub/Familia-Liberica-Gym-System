@@ -35,6 +35,7 @@ CREATE TABLE public.renewals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     member_id UUID NOT NULL REFERENCES public.members(id) ON DELETE CASCADE,
     membership_type membership_type NOT NULL,
+    membership_category TEXT,
     previous_end_date DATE NOT NULL,
     new_end_date DATE NOT NULL,
     payment_amount DECIMAL(10, 2) NOT NULL,

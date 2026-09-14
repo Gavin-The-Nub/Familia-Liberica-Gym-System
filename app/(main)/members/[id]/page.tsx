@@ -23,13 +23,13 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
       .from('members')
       .select(`
         *,
-        renewals ( id, membership_type, membership_category, previous_end_date, new_end_date, payment_amount, created_at )
+        renewals ( * )
       `)
       .eq('id', resolvedParams.id)
       .single()
 
     if (error) {
-      console.error("Error fetching member:", error)
+      console.error("Error fetching member (code:", error.code, "):", error.message, error.details)
       setMember(null)
     } else {
       const { data: attendance, error: attendanceError } = await supabase
